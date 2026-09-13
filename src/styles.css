@@ -1,5 +1,8 @@
 /* Tailwind v4 + daisyUI design system */
 @import "tailwindcss";
+
+/* Persian font — Vazirmatn (self-hosted, variable weight) */
+@import "@fontsource-variable/vazirmatn";
 @plugin "daisyui" {
   themes: winter --default;
 }
