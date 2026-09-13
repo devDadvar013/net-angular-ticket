@@ -9,7 +9,7 @@ import {
   output,
   signal,
 } from "@angular/core";
-import jalaali from "jalaali-js";
+import * as jalaali from "jalaali-js";
 
 export interface JalaliDay {
   jy: number;
