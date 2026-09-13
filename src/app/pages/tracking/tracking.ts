@@ -2,11 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   signal,
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Booking } from "../../core/models/flight.models";
 import { FlightStateService } from "../../core/services/flight-state.service";
 import { TicketViewComponent } from "../../shared/components/ticket-view/ticket-view";
@@ -144,13 +144,15 @@ export class TrackingPage {
 
   constructor() {
     // Support direct links like /tracking?ref=47ZJWE — auto-lookup
-    effect(() => {
-      const refParam = this.route.snapshot.queryParamMap.get("ref");
-      if (refParam) {
-        this.ref.set(refParam);
-        this.doLookup(refParam.trim().toUpperCase());
-      }
-    });
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed())
+      .subscribe((params) => {
+        const refParam = params.get("ref");
+        if (refParam && refParam.trim().toUpperCase() !== this.ref().trim().toUpperCase()) {
+          this.ref.set(refParam);
+          this.doLookup(refParam.trim().toUpperCase());
+        }
+      });
   }
 
   async lookup(event: Event): Promise<void> {

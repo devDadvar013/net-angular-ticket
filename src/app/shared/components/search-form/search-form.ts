@@ -2,12 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
-  input,
   signal,
 } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CabinClass, SearchQuery } from "../../../core/models/flight.models";
 import { FlightStateService } from "../../../core/services/flight-state.service";
 import {
@@ -226,9 +225,6 @@ function addDays(d: Date, days: number): Date {
   `,
 })
 export class SearchFormComponent {
-  /** Optional prefill of destination code (from home quick-destination cards) */
-  readonly prefillTo = input<string | null>(null);
-
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly state = inject(FlightStateService);
@@ -294,13 +290,15 @@ export class SearchFormComponent {
       this.cabinClass.set(prev.cabinClass);
     }
 
-    // Prefill destination from query params (quick destination cards)
-    effect(() => {
-      const pre = this.prefillTo();
-      if (pre) {
-        this.to.set(pre);
-      }
-    });
+    // Prefill destination from query params (quick destination cards on home)
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed())
+      .subscribe((params) => {
+        const pre = params.get("to");
+        if (pre && this.state.airports().some((a) => a.code === pre)) {
+          this.to.set(pre);
+        }
+      });
 
     // Fetch airport list from API (falls back to bundled list)
     this.state.fetchAirports();
